@@ -3,18 +3,28 @@ from models.buku_model import BukuModel
 from views.buku_view import BukuView
 
 class BukuController:
-    def __init__(self):
-        # Inisialisasi Model dan View
+    def __init__(self, user_role="anggota"):
+        self.user_role = user_role
         self.model = BukuModel()
         self.view = BukuView()
 
+        # Menampilkan informasi role pada judul jendela aplikasi
+        self.view.title(f"Sistem Manajemen Perpustakaan - Mode: {self.user_role.upper()}")
+
         # Binding (mengikat) tombol di View dengan fungsi dari Controller
         self.view.btn_simpan.configure(command=self.simpan_data)
-        self.view.btn_update.configure(command=self.update_data)  # Tambahan Tombol Update
-        self.view.btn_hapus.configure(command=self.hapus_data)    # Tambahan Tombol Delete
+        self.view.btn_update.configure(command=self.update_data)  # Tombol Update
+        self.view.btn_hapus.configure(command=self.hapus_data)    # Tombol Delete
 
         # Binding Event Klik pada Baris Tabel untuk Mengisi Form otomatis
         self.view.tabel.bind("<ButtonRelease-1>", self.select_data)
+
+        # OTORISASI: Jika bukan admin, nonaktifkan form input dan tombol aksi
+        if self.user_role != "admin":
+            self.view.btn_simpan.configure(state="disabled", text="Akses Terkunci (Khusus Admin)")
+            self.view.entry_judul.configure(state="disabled")
+            self.view.entry_penulis.configure(state="disabled")
+            self.view.entry_tahun.configure(state="disabled")
 
         # Memuat data ke tabel saat aplikasi pertama kali dibuka
         self.muat_data_tabel()
@@ -27,12 +37,16 @@ class BukuController:
         # Mengambil data dari Model (database)
         data_buku = self.model.get_all_buku()
 
-        # Memasukkan data baru ke dalam tabel View
+        # Memasukkan data ke dalam tabel View
         for buku in data_buku:
             self.view.tabel.insert("", "end", values=(buku['id_buku'], buku['judul'], buku['penulis'], buku['tahun_terbit']))
 
     def select_data(self, event):
         # Mengambil data dari baris tabel yang diklik dan menampilkannya ke form input
+        # Hanya bisa dilakukan jika form aktif (admin)
+        if self.user_role != "admin":
+            return
+
         selected_item = self.view.tabel.focus()
         if selected_item:
             values = self.view.tabel.item(selected_item, 'values')
@@ -46,6 +60,11 @@ class BukuController:
                 self.view.entry_tahun.insert(0, values[3])
 
     def simpan_data(self):
+        # Proteksi ganda di level controller
+        if self.user_role != "admin":
+            messagebox.showerror("Akses Ditolak", "Anda tidak memiliki izin untuk menambah data!")
+            return
+
         # Mengambil teks dari kotak input di View
         judul = self.view.entry_judul.get()
         penulis = self.view.entry_penulis.get()
@@ -60,8 +79,8 @@ class BukuController:
         berhasil = self.model.create_buku(judul, penulis, tahun)
 
         if berhasil:
-            messagebox.showinfo("Sukses", "Data buku berhasil disimpan")
-            # Bersihkan form input
+            messagebox.showinfo("Sukses", "Data buku berhasil disimpan!")
+            # Bersihkan form input secara langsung
             self.view.entry_judul.delete(0, 'end')
             self.view.entry_penulis.delete(0, 'end')
             self.view.entry_tahun.delete(0, 'end')
@@ -71,6 +90,11 @@ class BukuController:
             messagebox.showerror("Error", "Terjadi kesalahan saat menyimpan data.")
 
     def update_data(self):
+        # Proteksi ganda di level controller
+        if self.user_role != "admin":
+            messagebox.showerror("Akses Ditolak", "Anda tidak memiliki izin untuk memperbarui data!")
+            return
+
         # Mengambil id_buku dari baris tabel yang dipilih lalu memperbarui datanya
         selected_item = self.view.tabel.focus()
         if not selected_item:
@@ -100,6 +124,11 @@ class BukuController:
             messagebox.showerror("Error", "Terjadi kesalahan saat memperbarui data.")
 
     def hapus_data(self):
+        # Proteksi ganda di level controller
+        if self.user_role != "admin":
+            messagebox.showerror("Akses Ditolak", "Anda tidak memiliki izin untuk menghapus data!")
+            return
+
         # Mengambil id_buku dari baris tabel yang dipilih lalu menghapusnya
         selected_item = self.view.tabel.focus()
         if not selected_item:
@@ -125,4 +154,3 @@ class BukuController:
     # Fungsi untuk menjalankan aplikasi
     def run(self):
         self.view.mainloop()
-    
