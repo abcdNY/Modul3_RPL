@@ -15,6 +15,7 @@ class BukuController:
         self.view.btn_simpan.configure(command=self.simpan_data)
         self.view.btn_update.configure(command=self.update_data)  # Tombol Update
         self.view.btn_hapus.configure(command=self.hapus_data)    # Tombol Delete
+        self.view.btn_logout.configure(command=self.logout)
 
         # Binding Event Klik pada Baris Tabel untuk Mengisi Form otomatis
         self.view.tabel.bind("<ButtonRelease-1>", self.select_data)
@@ -22,6 +23,8 @@ class BukuController:
         # OTORISASI: Jika bukan admin, nonaktifkan form input dan tombol aksi
         if self.user_role != "admin":
             self.view.btn_simpan.configure(state="disabled", text="Akses Terkunci (Khusus Admin)")
+            self.view.btn_update.configure(state="disabled", text="Update Terkunci")
+            self.view.btn_hapus.configure(state="disabled", text="Hapus Terkunci")
             self.view.entry_judul.configure(state="disabled")
             self.view.entry_penulis.configure(state="disabled")
             self.view.entry_tahun.configure(state="disabled")
@@ -150,6 +153,14 @@ class BukuController:
                 self.muat_data_tabel()
             else:
                 messagebox.showerror("Error", "Terjadi kesalahan saat menghapus data.")
+
+    def logout(self):
+        konfirmasi = messagebox.askyesno("Konfirmasi Logout", "Apakah Anda yakin ingin keluar dari aplikasi?")
+        if konfirmasi:
+            self.view.destroy()  # Menutup jendela utama perpustakaan
+            from controllers.auth_controller import AuthController
+            auth = AuthController()  # Membuka kembali jendela Login View
+            auth.run()
 
     # Fungsi untuk menjalankan aplikasi
     def run(self):

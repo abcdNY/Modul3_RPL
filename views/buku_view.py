@@ -40,6 +40,9 @@ class BukuView(ctk.CTk):
     self.btn_hapus = ctk.CTkButton(self.frame_kiri, text="Hapus Data", fg_color="red") # tombol aksi baru
     self.btn_hapus.pack(pady=5, padx=15, fill="x")
 
+    self.btn_logout = ctk.CTkButton(self.frame_kiri, text="Logout", fg_color="red")
+    self.btn_logout.pack(pady=20, padx=15, fill="x")
+
     # ========================================
     # FRAME KANAN: TABEL DAFTAR BUKU
     # ========================================
@@ -70,5 +73,3 @@ class BukuView(ctk.CTk):
 if __name__ == "__main__":
     app = BukuView()
     app.mainloop()
-
-    
